@@ -53,7 +53,12 @@ const VacationList: React.FC<VacationListProps> = ({
   onDelete
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [sortConfig, setSortConfig] = useState<{ key: keyof Employee; direction: 'asc' | 'desc' } | null>(null);
+  
+  // Alterado aqui: Define vacationStart como padrão inicial de ordenação
+  const [sortConfig, setSortConfig] = useState<{ key: keyof Employee; direction: 'asc' | 'desc' } | null>({
+    key: 'vacationStart',
+    direction: 'asc'
+  });
 
   const handleSort = (key: keyof Employee) => {
     let direction: 'asc' | 'desc' = 'asc';
@@ -144,7 +149,10 @@ const VacationList: React.FC<VacationListProps> = ({
               </th>
 
               <th onClick={() => handleSort('vacationStart')} className="p-5 text-xs font-bold text-slate-400 uppercase tracking-wider cursor-pointer hover:text-indigo-400 transition-colors whitespace-nowrap">
-                 <div className="flex items-center gap-2">Início <ArrowUpDown size={14} /></div>
+                 <div className="flex items-center gap-2">
+                   Início 
+                   <ArrowUpDown size={14} className={sortConfig?.key === 'vacationStart' ? 'text-indigo-400' : ''} />
+                 </div>
               </th>
               <th className="p-5 text-xs font-bold text-slate-400 uppercase tracking-wider whitespace-nowrap">
                 Fim

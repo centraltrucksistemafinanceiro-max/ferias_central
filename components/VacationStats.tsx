@@ -7,25 +7,31 @@ interface VacationStatsProps {
 }
 
 const VacationStats: React.FC<VacationStatsProps> = ({ employees }) => {
-  const monthCounts: Record<string, number> = {};
+  // Define a ordem fixa e correta dos meses
+  const monthNames = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+  
+  // Inicializa um array de 12 posições com 0
+  const countsByMonthIndex = new Array(12).fill(0);
   
   employees.forEach(emp => {
+    if (!emp.vacationStart) return;
+    
     const parts = emp.vacationStart.split('/');
     if (parts.length === 3) {
+      // Pega o mês (segunda parte), converte para número e subtrai 1 para ficar índice 0-11
       const monthIndex = parseInt(parts[1], 10) - 1;
-      const monthName = new Date(2024, monthIndex, 1).toLocaleString('pt-BR', { month: 'short' });
-      const key = monthName.charAt(0).toUpperCase() + monthName.slice(1);
-      monthCounts[key] = (monthCounts[key] || 0) + 1;
+      
+      if (monthIndex >= 0 && monthIndex < 12) {
+        countsByMonthIndex[monthIndex]++;
+      }
     }
   });
 
-  const data = Object.keys(monthCounts).map(key => ({
-    name: key,
-    funcionarios: monthCounts[key]
-  }));
-
-  const monthOrder = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
-  data.sort((a, b) => monthOrder.indexOf(a.name) - monthOrder.indexOf(b.name));
+  // Mapeia na ordem correta (Jan -> Dez)
+  const data = monthNames.map((name, index) => ({
+    name: name,
+    funcionarios: countsByMonthIndex[index]
+  })).filter(item => item.funcionarios > 0); // Remove meses sem férias (opcional: remova o .filter se quiser mostrar meses vazios)
 
   return (
     <div className="glass-panel p-6 rounded-3xl h-[350px] flex flex-col shadow-xl">
@@ -48,6 +54,7 @@ const VacationStats: React.FC<VacationStatsProps> = ({ employees }) => {
               axisLine={false} 
               tickLine={false} 
               tick={{ fill: '#94a3b8', fontSize: 12 }} 
+              allowDecimals={false}
             />
             <Tooltip 
               cursor={{ fill: '#1e293b', opacity: 0.5 }}
