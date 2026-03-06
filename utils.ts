@@ -34,6 +34,11 @@ export const sortEmployees = (
       return 0;
     }
 
+    // Handle potentially undefined values (like observations)
+    if (valA === valB) return 0;
+    if (valA === undefined || valA === null) return 1;
+    if (valB === undefined || valB === null) return -1;
+
     // Default string comparison for names/ids
     if (valA < valB) {
       return direction === 'asc' ? -1 : 1;
