@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Search, User, ArrowUpDown, Pencil, Trash2, Clock, CalendarDays, CheckCircle2, Plane } from 'lucide-react';
 import { Employee } from '../types';
+import { sortEmployees, parseDate } from '../utils';
 
 interface VacationListProps {
   employees: Employee[];
@@ -8,20 +9,11 @@ interface VacationListProps {
   isAdmin?: boolean;
   onEdit?: (employee: Employee) => void;
   onDelete?: (id: string) => void;
+  searchTerm: string;
+  setSearchTerm: (term: string) => void;
+  sortConfig: { key: keyof Employee; direction: 'asc' | 'desc' } | null;
+  setSortConfig: (config: { key: keyof Employee; direction: 'asc' | 'desc' } | null) => void;
 }
-
-// Helper to parse DD/MM/YYYY to Date object (set to midnight)
-const parseDate = (dateStr: string): Date | null => {
-  if (!dateStr) return null;
-  const parts = dateStr.split('/');
-  if (parts.length !== 3) return null;
-  const day = parseInt(parts[0], 10);
-  const month = parseInt(parts[1], 10) - 1; // Months are 0-indexed
-  const year = parseInt(parts[2], 10);
-  const date = new Date(year, month, day);
-  date.setHours(0, 0, 0, 0);
-  return date;
-};
 
 // Helper to calculate status and days remaining
 const getVacationStatus = (startDateStr: string, endDateStr: string) => {
@@ -50,15 +42,12 @@ const VacationList: React.FC<VacationListProps> = ({
   readOnly = false,
   isAdmin = false,
   onEdit,
-  onDelete
+  onDelete,
+  searchTerm,
+  setSearchTerm,
+  sortConfig,
+  setSortConfig
 }) => {
-  const [searchTerm, setSearchTerm] = useState('');
-  
-  // Alterado aqui: Define vacationStart como padrão inicial de ordenação
-  const [sortConfig, setSortConfig] = useState<{ key: keyof Employee; direction: 'asc' | 'desc' } | null>({
-    key: 'vacationStart',
-    direction: 'asc'
-  });
 
   const handleSort = (key: keyof Employee) => {
     let direction: 'asc' | 'desc' = 'asc';
@@ -78,33 +67,9 @@ const VacationList: React.FC<VacationListProps> = ({
     emp.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const sortedEmployees = [...filteredEmployees].sort((a, b) => {
-    if (!sortConfig) return 0;
-    
-    const valA = a[sortConfig.key];
-    const valB = b[sortConfig.key];
-
-    // Check if the key corresponds to a date field
-    const isDateField = ['admissionDate', 'vacationStart', 'vacationEnd', 'returnDate'].includes(sortConfig.key);
-
-    if (isDateField) {
-      const dateA = parseDate(valA)?.getTime() || 0;
-      const dateB = parseDate(valB)?.getTime() || 0;
-      
-      if (dateA < dateB) return sortConfig.direction === 'asc' ? -1 : 1;
-      if (dateA > dateB) return sortConfig.direction === 'asc' ? 1 : -1;
-      return 0;
-    }
-
-    // Default string comparison for names/ids
-    if (valA < valB) {
-      return sortConfig.direction === 'asc' ? -1 : 1;
-    }
-    if (valA > valB) {
-      return sortConfig.direction === 'asc' ? 1 : -1;
-    }
-    return 0;
-  });
+  const sortedEmployees = sortConfig 
+    ? sortEmployees(filteredEmployees, sortConfig.key, sortConfig.direction)
+    : filteredEmployees;
 
   // Determine if actions should be shown (must be logged in as admin and not in readOnly mode)
   const showActions = isAdmin && !readOnly;
@@ -188,6 +153,11 @@ const VacationList: React.FC<VacationListProps> = ({
                             {emp.name}
                           </span>
                           <span className="text-xs text-slate-500">Adm: {emp.admissionDate}</span>
+                          {emp.observations && (
+                            <div className="mt-1.5 p-2 bg-slate-900/50 rounded-lg border border-slate-700/50 text-[11px] text-indigo-300 italic max-w-[250px] whitespace-normal leading-relaxed">
+                              {emp.observations}
+                            </div>
+                          )}
                         </div>
                       </div>
                     </td>

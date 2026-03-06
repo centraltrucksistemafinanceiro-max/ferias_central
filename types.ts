@@ -7,6 +7,7 @@ export interface Employee {
   vacationStart: string;
   vacationEnd: string;
   returnDate: string;
+  observations?: string;
 }
 
 export enum ViewState {

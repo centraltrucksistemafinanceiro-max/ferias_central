@@ -41,6 +41,7 @@ import MiniCalendar from './components/MiniCalendar';
 import Toast from './components/Toast';
 import RotateOverlay from './components/RotateOverlay';
 import LoginModal from './components/LoginModal';
+import { sortEmployees } from './utils';
 
 function App() {
   const [employees, setEmployees] = useState<Employee[]>([]);
@@ -58,6 +59,13 @@ function App() {
 
   // Mobile Sidebar State
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  // Sorting and Filtering State (Hoisted from VacationList)
+  const [searchTerm, setSearchTerm] = useState('');
+  const [sortConfig, setSortConfig] = useState<{ key: keyof Employee; direction: 'asc' | 'desc' } | null>({
+    key: 'vacationStart',
+    direction: 'asc'
+  });
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -205,12 +213,22 @@ function App() {
   }
 
   const handleExportExcel = () => {
-    const dataToExport = employees.map(emp => ({
+    // Aplica o mesmo filtro e ordenação que o usuário vê na tela
+    const filteredData = employees.filter((emp) =>
+      emp.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    const sortedData = sortConfig 
+      ? sortEmployees(filteredData, sortConfig.key, sortConfig.direction)
+      : filteredData;
+
+    const dataToExport = sortedData.map(emp => ({
       "Colaborador": emp.name,
       "Data Admissão": emp.admissionDate,
       "Início Férias": emp.vacationStart,
       "Fim Férias": emp.vacationEnd,
-      "Data Retorno": emp.returnDate
+      "Data Retorno": emp.returnDate,
+      "Observações": emp.observations || ""
     }));
 
     const worksheet = XLSX.utils.json_to_sheet(dataToExport);
@@ -220,7 +238,8 @@ function App() {
       { wch: 15 }, 
       { wch: 15 }, 
       { wch: 15 }, 
-      { wch: 15 }
+      { wch: 15 },
+      { wch: 40 }
     ];
     worksheet['!cols'] = wscols;
 
@@ -289,7 +308,14 @@ function App() {
                 <Loader2 className="animate-spin text-indigo-500" size={48} />
              </div>
            ) : (
-             <VacationList employees={employees} readOnly={true} />
+              <VacationList 
+                employees={employees} 
+                readOnly={true} 
+                searchTerm={searchTerm}
+                setSearchTerm={setSearchTerm}
+                sortConfig={sortConfig}
+                setSortConfig={setSortConfig}
+              />
            )}
         </main>
         
@@ -516,6 +542,10 @@ function App() {
                     isAdmin={isAdmin}
                     onEdit={handleEditEmployee}
                     onDelete={handleDeleteEmployee}
+                    searchTerm={searchTerm}
+                    setSearchTerm={setSearchTerm}
+                    sortConfig={sortConfig}
+                    setSortConfig={setSortConfig}
                   />
                 </div>
               )}

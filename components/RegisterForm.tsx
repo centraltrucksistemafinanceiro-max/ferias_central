@@ -18,7 +18,8 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSave, onCancel, initialDa
     admissionDate: '',
     vacationStart: '',
     vacationEnd: '',
-    returnDate: ''
+    returnDate: '',
+    observations: ''
   });
 
   // Batch Mode State
@@ -43,12 +44,13 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSave, onCancel, initialDa
         admissionDate: convertToInputFormat(initialData.admissionDate),
         vacationStart: convertToInputFormat(initialData.vacationStart),
         vacationEnd: convertToInputFormat(initialData.vacationEnd),
-        returnDate: convertToInputFormat(initialData.returnDate)
+        returnDate: convertToInputFormat(initialData.returnDate),
+        observations: initialData.observations || ''
       });
     }
   }, [initialData]);
 
-  const handleSingleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleSingleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setValidationError(null); // Clear error on edit
     
@@ -174,7 +176,8 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSave, onCancel, initialDa
       admissionDate: formatDate(formData.admissionDate),
       vacationStart: formatDate(formData.vacationStart),
       vacationEnd: formatDate(formData.vacationEnd),
-      returnDate: formatDate(formData.returnDate)
+      returnDate: formatDate(formData.returnDate),
+      observations: formData.observations
     };
     onSave([newEmployee]);
   };
@@ -404,9 +407,20 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSave, onCancel, initialDa
                           className="w-full p-4 bg-emerald-900/10 border border-emerald-500/20 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none text-emerald-200 [color-scheme:dark]"
                         />
                       </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-slate-300 mb-2">Observações</label>
+                    <textarea
+                      name="observations"
+                      value={formData.observations}
+                      onChange={handleSingleChange}
+                      className="w-full p-4 bg-slate-900/50 border border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all text-white placeholder-slate-600 resize-none h-32"
+                      placeholder="Ex: Adiantou as férias 10 dias..."
+                    ></textarea>
                   </div>
                 </div>
-              </div>
 
               <div className="pt-8 flex flex-col-reverse md:flex-row items-center justify-end gap-3 md:gap-4 border-t border-slate-700/50">
                 <button
