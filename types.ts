@@ -8,6 +8,7 @@ export interface Employee {
   vacationEnd: string;
   returnDate: string;
   observations?: string;
+  hideObservationsFromQR?: boolean;
 }
 
 export enum ViewState {

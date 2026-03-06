@@ -153,7 +153,7 @@ const VacationList: React.FC<VacationListProps> = ({
                             {emp.name}
                           </span>
                           <span className="text-xs text-slate-500">Adm: {emp.admissionDate}</span>
-                          {emp.observations && (
+                          {emp.observations && (!readOnly || !emp.hideObservationsFromQR) && (
                             <div className="mt-1.5 p-2 bg-slate-900/50 rounded-lg border border-slate-700/50 text-[11px] text-indigo-300 italic max-w-[250px] whitespace-normal leading-relaxed">
                               {emp.observations}
                             </div>

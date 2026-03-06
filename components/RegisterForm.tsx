@@ -19,7 +19,8 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSave, onCancel, initialDa
     vacationStart: '',
     vacationEnd: '',
     returnDate: '',
-    observations: ''
+    observations: '',
+    hideObservationsFromQR: false
   });
 
   // Batch Mode State
@@ -45,16 +46,20 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSave, onCancel, initialDa
         vacationStart: convertToInputFormat(initialData.vacationStart),
         vacationEnd: convertToInputFormat(initialData.vacationEnd),
         returnDate: convertToInputFormat(initialData.returnDate),
-        observations: initialData.observations || ''
+        observations: initialData.observations || '',
+        hideObservationsFromQR: initialData.hideObservationsFromQR || false
       });
     }
   }, [initialData]);
 
   const handleSingleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
+    const target = e.target;
+    const value = target.type === 'checkbox' ? (target as HTMLInputElement).checked : target.value;
+    const name = target.name;
+
     setValidationError(null); // Clear error on edit
     
-    if (name === 'vacationStart' && value) {
+    if (name === 'vacationStart' && value && typeof value === 'string') {
       try {
         // Use T12:00:00 to avoid timezone rolling issues when just setting the date
         const startDate = new Date(`${value}T12:00:00`);
@@ -177,7 +182,8 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSave, onCancel, initialDa
       vacationStart: formatDate(formData.vacationStart),
       vacationEnd: formatDate(formData.vacationEnd),
       returnDate: formatDate(formData.returnDate),
-      observations: formData.observations
+      observations: formData.observations,
+      hideObservationsFromQR: formData.hideObservationsFromQR
     };
     onSave([newEmployee]);
   };
@@ -419,6 +425,23 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSave, onCancel, initialDa
                       className="w-full p-4 bg-slate-900/50 border border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all text-white placeholder-slate-600 resize-none h-32"
                       placeholder="Ex: Adiantou as férias 10 dias..."
                     ></textarea>
+                    
+                    <div className="mt-3 flex items-center gap-3 bg-slate-800/40 p-3 rounded-xl border border-slate-700/50">
+                      <div className="relative inline-flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          name="hideObservationsFromQR"
+                          checked={formData.hideObservationsFromQR}
+                          onChange={handleSingleChange}
+                          id="hide-obs-qr"
+                          className="sr-only peer"
+                        />
+                        <div className="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500"></div>
+                      </div>
+                      <label htmlFor="hide-obs-qr" className="text-xs font-medium text-slate-400 cursor-pointer">
+                        Ocultar observação no Modo Somente Leitura (QR Code)
+                      </label>
+                    </div>
                   </div>
                 </div>
 
