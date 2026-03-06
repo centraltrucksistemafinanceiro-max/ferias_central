@@ -154,7 +154,12 @@ const VacationList: React.FC<VacationListProps> = ({
                           </span>
                           <span className="text-xs text-slate-500">Adm: {emp.admissionDate}</span>
                           {emp.observations && (!readOnly || !emp.hideObservationsFromQR) && (
-                            <div className="mt-1.5 p-2 bg-slate-900/50 rounded-lg border border-slate-700/50 text-[11px] text-indigo-300 italic max-w-[250px] whitespace-normal leading-relaxed">
+                            <div className="mt-1.5 p-2 bg-slate-900/50 rounded-lg border border-slate-700/50 text-[11px] text-indigo-300 italic max-w-[250px] whitespace-normal leading-relaxed relative flex items-start gap-1.5">
+                              {emp.hideObservationsFromQR && !readOnly && (
+                                <span className="flex-shrink-0 text-amber-500/80 mt-0.5" title="Oculto no QR Code">
+                                   <Clock size={10} strokeWidth={3} />
+                                </span>
+                              )}
                               {emp.observations}
                             </div>
                           )}

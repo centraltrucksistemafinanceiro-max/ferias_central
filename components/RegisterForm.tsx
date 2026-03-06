@@ -426,20 +426,32 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSave, onCancel, initialDa
                       placeholder="Ex: Adiantou as férias 10 dias..."
                     ></textarea>
                     
-                    <div className="mt-3 flex items-center gap-3 bg-slate-800/40 p-3 rounded-xl border border-slate-700/50">
-                      <div className="relative inline-flex items-center cursor-pointer">
+                    <div className="mt-3 flex items-center gap-3 bg-slate-800/40 p-3 rounded-xl border border-slate-700/50 select-none">
+                      <label 
+                        className="relative inline-flex items-center cursor-pointer"
+                        onClick={(e) => {
+                          // Prevent double firing if clicking children
+                          if (e.target instanceof HTMLInputElement) return;
+                          handleSingleChange({
+                            target: {
+                              name: 'hideObservationsFromQR',
+                              type: 'checkbox',
+                              checked: !formData.hideObservationsFromQR
+                            }
+                          } as any);
+                        }}
+                      >
                         <input
                           type="checkbox"
                           name="hideObservationsFromQR"
                           checked={formData.hideObservationsFromQR}
-                          onChange={handleSingleChange}
-                          id="hide-obs-qr"
+                          onChange={() => {}} // Handled by label click for stability
                           className="sr-only peer"
                         />
-                        <div className="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500"></div>
-                      </div>
-                      <label htmlFor="hide-obs-qr" className="text-xs font-medium text-slate-400 cursor-pointer">
-                        Ocultar observação no Modo Somente Leitura (QR Code)
+                        <div className="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500"></div>
+                        <span className="ml-3 text-xs font-medium text-slate-400">
+                          Ocultar observação no Modo Somente Leitura (QR Code)
+                        </span>
                       </label>
                     </div>
                   </div>
