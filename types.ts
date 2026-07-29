@@ -9,6 +9,7 @@ export interface Employee {
   returnDate: string;
   observations?: string;
   hideObservationsFromQR?: boolean;
+  isActive?: boolean;
 }
 
 export enum ViewState {

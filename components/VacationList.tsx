@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, User, ArrowUpDown, Pencil, Trash2, Clock, CalendarDays, CheckCircle2, Plane } from 'lucide-react';
+import { Search, User, ArrowUpDown, Pencil, Trash2, Clock, CalendarDays, CheckCircle2, Plane, UserCheck, UserMinus } from 'lucide-react';
 import { Employee } from '../types';
 import { sortEmployees, parseDate } from '../utils';
 
@@ -9,6 +9,7 @@ interface VacationListProps {
   isAdmin?: boolean;
   onEdit?: (employee: Employee) => void;
   onDelete?: (id: string) => void;
+  onToggleActive?: (id: string, currentStatus: boolean) => void;
   searchTerm: string;
   setSearchTerm: (term: string) => void;
   sortConfig: { key: keyof Employee; direction: 'asc' | 'desc' } | null;
@@ -48,6 +49,7 @@ const VacationList: React.FC<VacationListProps> = ({
   sortConfig,
   setSortConfig
 }) => {
+  const [statusFilter, setStatusFilter] = useState<'active' | 'inactive' | 'all'>('active');
 
   const handleSort = (key: keyof Employee) => {
     let direction: 'asc' | 'desc' = 'asc';
@@ -63,9 +65,14 @@ const VacationList: React.FC<VacationListProps> = ({
     }
   };
 
-  const filteredEmployees = employees.filter((emp) =>
-    emp.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredEmployees = employees.filter((emp) => {
+    const matchesSearch = emp.name.toLowerCase().includes(searchTerm.toLowerCase());
+    const isEmpActive = emp.isActive !== false;
+    
+    if (statusFilter === 'active') return matchesSearch && isEmpActive;
+    if (statusFilter === 'inactive') return matchesSearch && !isEmpActive;
+    return matchesSearch;
+  });
 
   const sortedEmployees = sortConfig 
     ? sortEmployees(filteredEmployees, sortConfig.key, sortConfig.direction)
@@ -86,17 +93,30 @@ const VacationList: React.FC<VacationListProps> = ({
             {readOnly ? 'Visualização de datas e contagem regressiva' : 'Gerencie os períodos de férias'}
           </p>
         </div>
-        <div className="relative group">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <Search size={18} className="text-slate-500 group-focus-within:text-indigo-400 transition-colors" />
+        <div className="flex flex-col sm:flex-row gap-4 items-center">
+          <div className="flex items-center gap-1 bg-slate-800/80 p-1.5 rounded-xl border border-slate-700">
+             {(['active', 'inactive', 'all'] as const).map(status => (
+                <button 
+                  key={status} 
+                  onClick={() => setStatusFilter(status)} 
+                  className={`px-3 py-1.5 text-[10px] sm:text-xs font-bold uppercase tracking-wider rounded-lg transition-all ${statusFilter === status ? 'bg-slate-700 text-white shadow-sm ring-1 ring-white/10' : 'text-slate-500 hover:text-slate-300'}`}
+                >
+                    {status === 'active' ? 'Ativos' : status === 'inactive' ? 'Inativos' : 'Todos'}
+                </button>
+             ))}
           </div>
-          <input
-            type="text"
-            placeholder="Buscar funcionário..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10 pr-4 py-2.5 bg-slate-800 border border-slate-700 text-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none w-full md:w-72 transition-all shadow-inner"
-          />
+          <div className="relative group">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <Search size={18} className="text-slate-500 group-focus-within:text-indigo-400 transition-colors" />
+            </div>
+            <input
+              type="text"
+              placeholder="Buscar funcionário..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 pr-4 py-2.5 bg-slate-800 border border-slate-700 text-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none w-full md:w-64 transition-all shadow-inner text-sm"
+            />
+          </div>
         </div>
       </div>
 
@@ -136,9 +156,10 @@ const VacationList: React.FC<VacationListProps> = ({
             {sortedEmployees.length > 0 ? (
               sortedEmployees.map((emp, idx) => {
                 const status = getVacationStatus(emp.vacationStart, emp.vacationEnd);
+                const isEmpActive = emp.isActive !== false;
                 
                 return (
-                  <tr key={emp.id} className="hover:bg-slate-800/40 transition-all duration-200 group">
+                  <tr key={emp.id} className={`hover:bg-slate-800/40 transition-all duration-200 group ${!isEmpActive ? 'opacity-50 grayscale' : ''}`}>
                     <td className="p-5 whitespace-nowrap sticky left-0 bg-slate-900/95 md:bg-transparent z-10 md:z-auto shadow-[4px_0_8px_-2px_rgba(0,0,0,0.3)] md:shadow-none">
                       <div className="flex items-center gap-4">
                         <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-sm shadow-lg flex-shrink-0
@@ -204,6 +225,17 @@ const VacationList: React.FC<VacationListProps> = ({
                             title="Editar"
                           >
                             <Pencil size={16} />
+                          </button>
+                          <button 
+                            onClick={() => {
+                               if (window.confirm(`Tem certeza que deseja ${isEmpActive ? 'INATIVAR' : 'ATIVAR'} ${emp.name}?`)) {
+                                 onToggleActive?.(emp.id, isEmpActive);
+                               }
+                            }}
+                            className={`p-2 rounded-lg transition-colors ${isEmpActive ? 'text-slate-400 hover:text-amber-400 hover:bg-amber-500/10' : 'text-slate-400 hover:text-emerald-400 hover:bg-emerald-500/10'}`}
+                            title={isEmpActive ? "Inativar" : "Ativar"}
+                          >
+                            {isEmpActive ? <UserMinus size={16} /> : <UserCheck size={16} />}
                           </button>
                           <button 
                             onClick={() => handleDeleteClick(emp.id, emp.name)}

@@ -220,6 +220,16 @@ function App() {
     }
   };
 
+  const handleToggleActiveEmployee = async (id: string, currentStatus: boolean) => {
+    try {
+      await updateDoc(doc(db, 'employees', id), { isActive: !currentStatus });
+      showToast(currentStatus ? 'Funcionário inativado.' : 'Funcionário ativado.', 'success');
+    } catch (error) {
+      console.error("Error toggling active:", error);
+      showToast('Erro ao atualizar status.', 'error');
+    }
+  };
+
   const handleCancelRegister = () => {
     setEditingEmployee(null);
     setViewState(ViewState.DASHBOARD);
@@ -566,6 +576,7 @@ function App() {
                     isAdmin={isAdmin}
                     onEdit={handleEditEmployee}
                     onDelete={handleDeleteEmployee}
+                    onToggleActive={handleToggleActiveEmployee}
                     searchTerm={searchTerm}
                     setSearchTerm={setSearchTerm}
                     sortConfig={sortConfig}
