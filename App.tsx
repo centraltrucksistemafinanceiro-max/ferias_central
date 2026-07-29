@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   LayoutDashboard, 
   PlusCircle, 
@@ -67,6 +67,8 @@ function App() {
     direction: 'asc'
   });
 
+  const hasSeeded = useRef(false);
+
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     if (params.get('mode') === 'readonly') {
@@ -114,7 +116,8 @@ function App() {
       setIsLoading(false);
 
       // Seed database if empty
-      if (employeesData.length === 0) {
+      if (employeesData.length === 0 && !hasSeeded.current) {
+        hasSeeded.current = true;
         console.log("Banco de dados vazio. Iniciando carga de dados iniciais...");
         seedDatabase();
       }
