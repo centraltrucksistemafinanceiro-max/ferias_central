@@ -107,16 +107,37 @@ function App() {
     const unsubscribe = onSnapshot(collection(db, 'employees'), (snapshot) => {
       console.log("Recebidos dados do Firebase:", snapshot.size, "documentos");
       
-      const employeesData: Employee[] = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      } as Employee));
+      const uniqueEmployees: Employee[] = [];
+      const seenNames = new Set<string>();
+      const duplicatesToDelete: string[] = [];
+
+      snapshot.docs.forEach(doc => {
+        const emp = { id: doc.id, ...doc.data() } as Employee;
+        const normalizedName = emp.name.trim().toUpperCase();
+        
+        if (!seenNames.has(normalizedName)) {
+          seenNames.add(normalizedName);
+          uniqueEmployees.push(emp);
+        } else {
+          duplicatesToDelete.push(doc.id);
+        }
+      });
       
-      setEmployees(employeesData);
+      setEmployees(uniqueEmployees);
       setIsLoading(false);
 
+      // Clean up duplicates from Firebase automatically
+      if (duplicatesToDelete.length > 0) {
+        duplicatesToDelete.forEach(async (dupId) => {
+           try {
+             await deleteDoc(doc(db, 'employees', dupId));
+             console.log("Deleted duplicate:", dupId);
+           } catch(e) {}
+        });
+      }
+
       // Seed database if empty
-      if (employeesData.length === 0 && !hasSeeded.current) {
+      if (uniqueEmployees.length === 0 && !hasSeeded.current) {
         hasSeeded.current = true;
         console.log("Banco de dados vazio. Iniciando carga de dados iniciais...");
         seedDatabase();
